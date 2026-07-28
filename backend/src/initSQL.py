@@ -20,6 +20,7 @@ cursor.execute('DROP TABLE IF EXISTS Ingredients')
 cursor.execute('DROP TABLE IF EXISTS Products')
 cursor.execute('DROP TABLE IF EXISTS Recipes')
 cursor.execute('DROP TABLE IF EXISTS Buildings')
+cursor.execute('DROP TABLE IF EXISTS Items')
 
 cursor.execute('CREATE TABLE IF NOT EXISTS Recipes (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), \
                unlockedBy VARCHAR(1000), duration INT, producedIn VARCHAR(50), alternate BOOL)')
@@ -29,11 +30,13 @@ cursor.execute('CREATE TABLE IF NOT EXISTS Products (id INT PRIMARY KEY AUTO_INC
                item VARCHAR(50), amount INT UNSIGNED, amountPerMin FLOAT(3))')
 cursor.execute('CREATE TABLE IF NOT EXISTS Buildings (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), unlockedBy VARCHAR(50), \
 			   powerUsage INT, somersloopSlots INT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS Items (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), producedIn VARCHAR(50))')
 
 recipe_insert_query = 'INSERT INTO Recipes (className, name, unlockedBy, duration, producedIn, alternate) VALUES (%s, %s, %s, %s, %s, %s)'
 ingredient_insert_query = 'INSERT INTO Ingredients (recipeID, item, amount, amountPerMin) VALUES (%s, %s, %s, %s)'
 product_insert_query = 'INSERT INTO Products (recipeID, item, amount, amountPerMin) VALUES (%s, %s, %s, %s)'
 building_insert_query = 'INSERT INTO Buildings (className, name, unlockedBy, powerUsage, somersloopSlots) VALUES (%s, %s, %s, %s, %s)'
+item_insert_query = 'INSERT INTO Items (className, name, producedIn) VALUES (%s, %s, %s)'
 
 recipes_s = pd.read_json('data/Template_DocsRecipes.json', typ='series')
 recipes_s
@@ -41,9 +44,12 @@ recipes_s.sort_values(key=lambda x: x.apply(lambda y: y[0]['name']), inplace=Tru
 
 buildings_s = pd.read_json('data/Template_DocsBuildings.json', typ='series')
 
+items_s = pd.read_json('data/Template_DocsItems.json', typ='series')
+items_s.sort_values(key=lambda x: x.apply(lambda y: y[0]['name']), inplace=True)
+
 for value in recipes_s:
 	data = value[0]
-	if data['producedIn']:
+	if data['producedIn'] and data['seasons'] == []:
 		item = (
 			data['className'],
 			data['name'],
@@ -79,5 +85,21 @@ for value in buildings_s:
 			data['somersloopSlots']
 		)
 		cursor.execute(building_insert_query, building)
+
+raw_ores = {'Desc_OreBauxite_C', 'Desc_OreGold_C', 'Desc_Coal_C', 'Desc_Cement_C', 'Desc_OreCopper_C', 'Desc_OreIron_C', 'Desc_Stone_C', \
+                     'Desc_RawQuartz_C', 'Desc_SAM_C', 'Desc_Sulfur_C', 'Desc_OreUranium_C'}
+for value in items_s:
+	producedIn = ''
+	data = value[0]
+	if data['className'] in raw_ores:
+		producedIn = 'Desc_MinerMk1_C'		# CHANGE LATER (select mk1/2/3 as unlocked in gui) | OR SET DB TO HAVE HIGHEST UNLOCKED MINER IN API
+	elif data['className'] == 'Desc_LiquidOil_C':
+		producedIn = 'Desc_OilPump_C'
+	elif data['className'] == 'Desc_Water_C':
+		producedIn = 'Desc_WaterPump_C'
+	elif data['className'] == 'Desc_NitrogenGas_C':
+		producedIn = 'Desc_FrackingSmasher_C'
+	item = (data['className'], data['name'], producedIn)
+	cursor.execute(item_insert_query, item)
 
 db.commit()
