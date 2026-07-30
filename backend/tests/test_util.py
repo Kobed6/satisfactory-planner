@@ -1,27 +1,9 @@
-import os
-from dotenv import load_dotenv
-import mysql.connector
-from src.main import calculate
+from backend.src.solver import calculate
 import pytest
-
-load_dotenv()
-
-db = mysql.connector.connect(
-    host=os.getenv('DB_HOST'),
-    port=os.getenv('DB_PORT'),
-    user=os.getenv('DB_USER'),
-    passwd=os.getenv('DB_PASSWORD'),
-    database=os.getenv('DB_NAME')
-)
-
-@pytest.fixture(scope='session', autouse=True)
-def close_db():
-    yield
-    db.close()
 
 def test_iron_ingot():
     errors = []
-    prob_vars = calculate(db, 'Iron Ingot')
+    prob_vars = calculate('Iron Ingot')
 
     if prob_vars['Desc_IronIngot_C'].varValue != 120:
         errors.append(f'Incorrect value for Desc_IronIngot_C: expected 120, received {prob_vars['Desc_IronIngot_C'].varValue}')
@@ -32,7 +14,7 @@ def test_iron_ingot():
 
 def test_plastic():
     errors = []
-    prob_vars = calculate(db, 'Plastic')
+    prob_vars = calculate('Plastic')
 
     if prob_vars['Desc_Plastic_C'].varValue != 160:
         errors.append(f'Incorrect value for Desc_Plastic_C: expected 160, received {prob_vars['Desc_Plastic_C'].varValue}')
@@ -43,7 +25,7 @@ def test_plastic():
 
 def test_reinforced_plate():
     errors = []
-    prob_vars = calculate(db, 'Reinforced Iron Plate')
+    prob_vars = calculate('Reinforced Iron Plate')
 
     if prob_vars['Desc_IronPlateReinforced_C'].varValue != 10:
         errors.append(f'Incorrect value for Desc_IronPlateReinforced_C: expected 10, received {prob_vars['Desc_IronPlateReinforced_C'].varValue}')
@@ -62,7 +44,7 @@ def test_reinforced_plate():
 
 def test_ai_limiter():
     errors = []
-    prob_vars = calculate(db, 'AI Limiter')
+    prob_vars = calculate('AI Limiter')
 
     if prob_vars['Desc_CircuitBoardHighSpeed_C'].varValue != 10:
         errors.append(f'Incorrect value for Desc_CircuitBoardHighSpeed_C: expected 10, received {prob_vars['Desc_CircuitBoardHighSpeed_C'].varValue}')
@@ -83,7 +65,7 @@ def test_ai_limiter():
 
 def test_stator():
     errors = []
-    prob_vars = calculate(db, 'Stator')
+    prob_vars = calculate('Stator')
 
     if prob_vars['Desc_Stator_C'].varValue != pytest.approx(26.6667, abs=1e-3):
         errors.append(f'Incorrect value for Desc_Stator_C: expected 26.6667, received {prob_vars['Desc_Stator_C'].varValue}')
@@ -106,7 +88,7 @@ def test_stator():
 
 def test_computer():
     errors = []
-    prob_vars = calculate(db, 'Computer')
+    prob_vars = calculate('Computer')
 
     if prob_vars['Desc_Computer_C'].varValue != 5:
         errors.append(f'Incorrect value for Desc_Computer_C: expected 5, received {prob_vars['Desc_Computer_C'].varValue}')
