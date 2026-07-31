@@ -14,15 +14,15 @@ prob += reinforced_plates, 'Total_ReinforcedPlate_Production'
 
 # 4. Define constraints
 # Reinforced Plates: 6 plates + 12 screws = 1 reinforced plate
-prob += pulp.lpSum(6 * reinforced_plates) <= iron_plates, 'IronPlate_Requirement'
-prob += 12 * reinforced_plates <= screws, 'Screws_Requirement'
+prob += pulp.lpSum(6 * reinforced_plates) == iron_plates, 'IronPlate_Requirement'
+prob += 12 * reinforced_plates == screws, 'Screws_Requirement'
 
 # Iron Plates: 3 ingots make 2 plates => per unit = 1.5 ingots make 1 plate (3/2)
 # Cast Screws: 5 ingots make 20 screws => per unit = 0.25 ingots make 1 screw (5/20)
 var_constraints = {iron_ingots: [1.5 * iron_plates, 0.25 * screws]}
-prob += pulp.lpSum(var_constraints[iron_ingots]) <= iron_ingots, 'Available_IronIngots'
+prob += pulp.lpSum(var_constraints[iron_ingots]) == iron_ingots, 'Available_IronIngots'
 
-prob += iron_ingots <= 120, 'Iron_Ore'
+prob += iron_ingots == 120, 'Iron_Ore'
 
 # Relationship constraint: For every iron plate, there must be 2 screws (2x = y)
 prob += 2 * iron_plates - screws == 0, 'Ratio_Constraint'
