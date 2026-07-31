@@ -1,5 +1,6 @@
 from backend.src.solver import calculate
 import pytest
+from backend.src.database import get_recipe
 
 def test_iron_ingot():
     errors = []
@@ -108,5 +109,57 @@ def test_computer():
         errors.append(f'Incorrect value for Desc_CopperIngot_C: expected 120, received {prob_vars['Desc_CopperIngot_C'].varValue}')
     if prob_vars['Desc_OreCopper_C'].varValue != 120:
         errors.append(f'Incorrect value for Desc_OreCopper_C: expected 120, received {prob_vars['Desc_OreCopper_C'].varValue}')
+
+    assert not errors, "Errors occured:\n{}".format("\n".join(errors))
+
+def test_iron_ingot_list():
+    errors = []
+    recipes = [get_recipe('Iron Ingot')]
+    prob_vars = calculate('Iron Ingot', recipes)
+
+    if prob_vars['Desc_IronIngot_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_IronIngot_C: expected 120, received {prob_vars['Desc_IronIngot_C'].varValue}')
+    if prob_vars['Desc_OreIron_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_OreIron_C: expected 120, received {prob_vars['Desc_OreIron_C'].varValue}')
+
+    assert not errors, "Errors occured:\n{}".format("\n".join(errors))
+
+def test_reinforced_plate_list():
+    errors = []
+    recipes = [
+        get_recipe('Reinforced Iron Plate'),
+        get_recipe('Iron Plate'),
+        get_recipe('Screws'),
+        get_recipe('Iron Ingot'),
+        get_recipe('Iron Rod')
+    ]
+    prob_vars = calculate('Reinforced Iron Plate', recipes)
+
+    if prob_vars['Desc_IronPlateReinforced_C'].varValue != 10:
+        errors.append(f'Incorrect value for Desc_IronPlateReinforced_C: expected 10, received {prob_vars['Desc_IronPlateReinforced_C'].varValue}')
+    if prob_vars['Desc_IronPlate_C'].varValue != 60:
+        errors.append(f'Incorrect value for Desc_IronPlate_C: expected 60, received {prob_vars['Desc_IronPlate_C'].varValue}')
+    if prob_vars['Desc_IronScrew_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_IronScrew_C: expected 120, received {prob_vars['Desc_IronScrew_C'].varValue}')
+    if prob_vars['Desc_IronIngot_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_IronIngot_C: expected 120, received {prob_vars['Desc_IronIngot_C'].varValue}')
+    if prob_vars['Desc_IronRod_C'].varValue != 30:
+        errors.append(f'Incorrect value for Desc_IronRod_C: expected 30, received {prob_vars['Desc_IronRod_C'].varValue}')
+    if prob_vars['Desc_OreIron_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_OreIron_C: expected 120, received {prob_vars['Desc_OreIron_C'].varValue}')
+
+    assert not errors, "Errors occured:\n{}".format("\n".join(errors))
+
+def test_alternate_iron_ingot():
+    errors = []
+    recipes = [get_recipe('Basic Iron Ingot')]
+    prob_vars = calculate('Iron Ingot', recipes)
+
+    if prob_vars['Desc_IronIngot_C'].varValue != 150:
+        errors.append(f'Incorrect value for Desc_IronIngot_C: expected 150, received {prob_vars['Desc_IronIngot_C'].varValue}')
+    if prob_vars['Desc_OreIron_C'].varValue != 75:
+        errors.append(f'Incorrect value for Desc_OreIron_C: expected 75, received {prob_vars['Desc_OreIron_C'].varValue}')
+    if prob_vars['Desc_Stone_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_Stone_C: expected 120, received {prob_vars['Desc_Stone_C'].varValue}')
 
     assert not errors, "Errors occured:\n{}".format("\n".join(errors))
