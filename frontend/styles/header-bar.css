@@ -1,0 +1,10 @@
+.header-bar {
+  display: flex;
+  width: 100vw;
+  height: 12vh;
+  background-color: var(--gray-bg);
+  box-sizing: border-box;
+  padding: 2rem 6rem 2rem 2rem;
+  justify-content: space-between;
+  align-items: center;
+}

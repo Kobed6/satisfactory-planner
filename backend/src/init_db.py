@@ -16,12 +16,14 @@ db = mysql.connector.connect(
 
 cursor = db.cursor()
 
+print('Dropping existing tables...')
 cursor.execute('DROP TABLE IF EXISTS Ingredients')
 cursor.execute('DROP TABLE IF EXISTS Products')
 cursor.execute('DROP TABLE IF EXISTS Recipes')
 cursor.execute('DROP TABLE IF EXISTS Buildings')
 cursor.execute('DROP TABLE IF EXISTS Items')
 
+print('Creating tables...')
 cursor.execute('CREATE TABLE IF NOT EXISTS Recipes (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), \
                unlockedBy VARCHAR(1000), duration INT, producedIn VARCHAR(50), alternate BOOL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS Ingredients (id INT PRIMARY KEY AUTO_INCREMENT, recipeID INT, FOREIGN KEY (recipeID) REFERENCES Recipes(id), \
@@ -50,9 +52,17 @@ items_s.sort_values(key=lambda x: x.apply(lambda y: y[0]['name']), inplace=True)
 for value in recipes_s:
 	data = value[0]
 	if data['producedIn'] and data['seasons'] == []:
+		item_name = data['name']
+		# special case: turbo rifle ammo has two identical recipes with the only difference being their production buildings
+		if data['name'] == 'Turbo Rifle Ammo':
+			if data['producedIn'][0] == 'Desc_Blender_C':
+				item_name = 'Turbo Rifle Ammo (Blender)'
+			elif data['producedIn'][0] == 'Desc_ManufacturerMk1_C':
+				item_name = 'Turbo Rifle Ammo (Manufacturer)'
+
 		item = (
 			data['className'],
-			data['name'],
+			item_name,
 			data['unlockedBy'],
 			data['duration'],
 			data['producedIn'][0],
@@ -68,7 +78,7 @@ for value in recipes_s:
 			ingredient_tuple = (inserted_id, ingredient['item'], ingredient['amount'], ingredient['amountPerMin'])
 			cursor.execute(ingredient_insert_query, ingredient_tuple)
 
-# add conversion to per min to each product and insert ingredient to SQL database
+# add conversion to per min to each product and insert product to SQL database
 		for product in data['products']:
 			product['amountPerMin'] = product['amount'] * (60 / data['duration'])
 			product_tuple = (inserted_id, product['item'], product['amount'], product['amountPerMin'])
@@ -92,7 +102,7 @@ for value in items_s:
 	producedIn = ''
 	data = value[0]
 	if data['className'] in raw_ores:
-		producedIn = 'Desc_MinerMk1_C'		# CHANGE LATER (select mk1/2/3 as unlocked in gui) | OR SET DB TO HAVE HIGHEST UNLOCKED MINER IN API
+		producedIn = 'Desc_MinerMk1_C'
 	elif data['className'] == 'Desc_LiquidOil_C':
 		producedIn = 'Desc_OilPump_C'
 	elif data['className'] == 'Desc_Water_C':
@@ -103,3 +113,5 @@ for value in items_s:
 	cursor.execute(item_insert_query, item)
 
 db.commit()
+cursor.close()
+db.close()

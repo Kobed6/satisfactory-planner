@@ -1,0 +1,14 @@
+:root {
+  --gray-bg: #333333;
+  --black-bg: #0f0f0f;
+  --satisfactory-orange: #fa9549;
+  --satisfactory-blue: #5f668c;
+  --text: #e1ebf2;
+  --dark-gray: #242424;
+}
+
+body {
+  margin: 0;
+  background-color: var(--black-bg);
+  overflow-x: hidden;
+}

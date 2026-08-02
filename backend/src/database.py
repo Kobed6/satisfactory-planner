@@ -152,6 +152,19 @@ def get_all_recipes():
             print(f'Warning: get_all_recipes returning None')
             return None
 
+def get_search_recipes(input: str):
+    '''Returns recipes with names containing the search input'''
+    with db.cursor(dictionary=True) as cursor:
+        query = '''
+            SELECT name FROM Recipes WHERE name LIKE %s
+        '''
+        cursor.execute(query, (f'%{input}%',))
+        res = cursor.fetchall()
+        names = []
+        for r in res:
+            names.append(r['name'])
+        return names
+
 def to_className(item: str):
     '''Returns the className of an item using its in-game name'''
     try:

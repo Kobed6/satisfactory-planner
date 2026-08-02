@@ -1,0 +1,8 @@
+.logo {
+  color: #d8e4ee;
+  font-size: clamp(0.5rem, 1.5vw, 2rem);
+  font-weight: 900;
+  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+  display: flex;
+  align-items: center;
+}
