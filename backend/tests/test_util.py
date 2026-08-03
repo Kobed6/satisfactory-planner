@@ -163,3 +163,24 @@ def test_alternate_iron_ingot():
         errors.append(f'Incorrect value for Desc_Stone_C: expected 120, received {prob_vars['Desc_Stone_C'].varValue}')
 
     assert not errors, "Errors occured:\n{}".format("\n".join(errors))
+
+def test_automated_miner():
+    errors = []
+    prob_vars = calculate('Automated Miner')
+
+    if prob_vars['BP_ItemDescriptorPortableMiner_C'].varValue != 10:
+        errors.append(f'Incorrect value for BP_ItemDescriptorPortableMiner_C: expected 10, received {prob_vars['BP_ItemDescriptorPortableMiner_C'].varValue}')
+    if prob_vars['Desc_SteelPipe_C'].varValue != 40:
+        errors.append(f'Incorrect value for Desc_SteelPipe_C: expected 40, received {prob_vars['Desc_SteelPipe_C'].varValue}')
+    if prob_vars['Desc_IronPlate_C'].varValue != 40:
+        errors.append(f'Incorrect value for Desc_IronPlate_C: expected 40, received {prob_vars['Desc_IronPlate_C'].varValue}')
+    if prob_vars['Desc_SteelIngot_C'].varValue != 60:
+        errors.append(f'Incorrect value for Desc_SteelIngot_C: expected 60, received {prob_vars['Desc_SteelIngot_C'].varValue}')
+    if prob_vars['Desc_IronIngot_C'].varValue != 60:
+        errors.append(f'Incorrect value for Desc_IronIngot_C: expected 60, received {prob_vars['Desc_IronIngot_C'].varValue}')
+    if prob_vars['Desc_OreIron_C'].varValue != 120:
+        errors.append(f'Incorrect value for Desc_OreIron_C: expected 120, received {prob_vars['Desc_OreIron_C'].varValue}')
+    if prob_vars['Desc_Coal_C'].varValue != 60:
+        errors.append(f'Incorrect value for Desc_Coal_C: expected 60, received {prob_vars['Desc_Coal_C'].varValue}')
+
+    assert not errors, "Errors occured:\n{}".format("\n".join(errors))

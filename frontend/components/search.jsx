@@ -21,6 +21,20 @@ export default function Search() {
     }
   }
 
+  async function fetchSolution(recipe_name) {
+    try {
+      const res = await api.get('/solve', {
+        params: {
+          final_recipe: recipe_name
+        }
+      });
+      console.log(res.data)
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching solution', e);
+    }
+  }
+
   function handleChange(newQuery) {
     setQuery(newQuery);
     fetchRecipes(newQuery);
@@ -33,7 +47,7 @@ export default function Search() {
   }
 
   function handleClickRecipe(clickedRecipe) {
-    console.log(clickedRecipe)
+    const solution = fetchSolution(clickedRecipe);
   }
 
   return (

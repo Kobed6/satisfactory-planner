@@ -1,16 +1,16 @@
 from typing import Optional
 try:
-    from .database import get_ingredients, get_products, get_nonalt_recipe, get_recipes, get_item, get_main_product, to_className, to_name
+    from .database import get_ingredients, get_products, get_nonalt_recipe, get_recipe, get_item, get_main_product, to_className, to_name, recipe_name_to_className
 except ImportError:
-    from database import get_ingredients, get_products, get_nonalt_recipe, get_recipes, get_item, get_main_product, to_className, to_name
+    from database import get_ingredients, get_products, get_nonalt_recipe, get_recipe, get_item, get_main_product, to_className, to_name, recipe_name_to_className
 import pulp
 from collections import deque
 
 def get_extractor_output(extractor, purity) -> int:
-    '''
+    """
         Get output of miner or water/oil extractor based on node purity\n
         Purities: 0 = Impure, 1 = Normal, 2 = Pure
-    '''
+    """
     match extractor:
         case 'Desc_MinerMk1_C' | 'Desc_FrackingSmasher_C':
             if purity == 0:
@@ -38,8 +38,12 @@ def get_extractor_output(extractor, purity) -> int:
         case _:
             return 0
 
-def get_nonalt_recipes(item: str) -> list:
-    curr_recipe = get_nonalt_recipe(item)
+def get_nonalt_recipes(recipe_name: str) -> list:
+    """Returns the chain of non-alternate recipes used to make an item.
+    Args:
+        item (str): The final output item's className
+    """
+    curr_recipe = get_recipe(recipe_name)
     recipes = [curr_recipe]
     recipes_queue = deque([curr_recipe])
     seen_recipes = set()
@@ -52,9 +56,10 @@ def get_nonalt_recipes(item: str) -> list:
 
             for ingredient in get_ingredients(curr_recipe['name']):
                 item_name = to_name(ingredient['item'])
+                ingredient_className = ingredient['item']
                 if get_item(item_name)['producedIn'] == '':     # item is not from an extractor
-                    recipes_queue.append(get_nonalt_recipe(item_name))
-                    recipes.append(get_nonalt_recipe(item_name))
+                    recipes_queue.append(get_nonalt_recipe(ingredient_className))
+                    recipes.append(get_nonalt_recipe(ingredient_className))
     return recipes
 
 def print_output(status, prob_vars):
@@ -62,9 +67,10 @@ def print_output(status, prob_vars):
     for _, var in prob_vars.items():
         print(f'Number of {var.name}: {var.varValue}')
 
-def calculate(item: str, recipes: Optional[list] = None):
-    '''Returns LpProblem with maximum outputs of each item using base recipes'''
-    item_className = to_className(item)
+def calculate(final_recipe_name: str, recipes: Optional[list] = None):
+    """Returns LpProblem with maximum outputs of each item using base recipes"""
+    recipe = get_recipe(final_recipe_name)
+    item_className = get_main_product(recipe['className'])['item']
 
     prob = pulp.LpProblem(f'Maximize_{item_className}', pulp.LpMaximize)
     prob_vars = {}
@@ -73,7 +79,7 @@ def calculate(item: str, recipes: Optional[list] = None):
 
     recipe_list = []
     if recipes is None:
-        recipe_list = get_nonalt_recipes(item)
+        recipe_list = get_nonalt_recipes(recipe['name'])
     else:
         recipe_list = recipes
 
@@ -84,8 +90,10 @@ def calculate(item: str, recipes: Optional[list] = None):
         recipe_className = recipe['className']
         if recipe_className not in seen_recipes:
             seen_recipes.add(recipe_className)
-            recipe_product = get_main_product(recipe['className'])
-            recipe_product_var = prob_vars[recipe_product['item']]
+            recipe_products = get_products(recipe['name'])
+            for product in recipe_products:
+                if prob_vars.get(product['item']) is None:
+                    prob_vars[product['item']] = prob.add_variable(f'{product['item']}', lowBound=0, cat='Continuous')
             ingredients = get_ingredients(recipe['name'])
 
             for ingredient in ingredients:
@@ -100,10 +108,12 @@ def calculate(item: str, recipes: Optional[list] = None):
                         extractor_output = get_extractor_output(item_record['producedIn'], 2)
                         prob_vars[item_className] = prob.add_variable(f'{item_className}', lowBound=0, upBound=extractor_output, cat='Continuous')
 
-                if ingredient_products.get(item_className):
+                if ingredient_products.get(item_className) is None:
+                    ingredient_products[item_className] = []
+                for recipe_product in recipe_products:
+                    recipe_product_item = recipe_product['item']
+                    recipe_product_var = prob_vars[recipe_product_item]
                     ingredient_products[item_className].append((ingredient['amount'] / recipe_product['amount']) * recipe_product_var)
-                else:
-                    ingredient_products[item_className] = [(ingredient['amount'] / recipe_product['amount']) * recipe_product_var]
 
     for ingredient, products in ingredient_products.items():
         if len(products) > 1:
