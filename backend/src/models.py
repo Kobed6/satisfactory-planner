@@ -18,3 +18,8 @@ class SearchRecipe(BaseModel):
     name: str
     ingredients: str
     products: str
+
+class SolveRequest(BaseModel):
+    target_item: str
+    final_recipe: str
+    recipe_list: list[str] | None = None

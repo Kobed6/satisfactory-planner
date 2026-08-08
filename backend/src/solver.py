@@ -183,4 +183,4 @@ def calculate(target_item: str, final_recipe_name: str, recipes: Optional[list] 
 
 # print(calculate('AI Limiter', 'AI Limiter'))
 # print(calculate('Plastic', 'Plastic'))
-print(calculate('Reinforced Iron Plate', 'Reinforced Iron Plate'))
+# print(calculate('Reinforced Iron Plate', 'Reinforced Iron Plate'))

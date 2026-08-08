@@ -11,11 +11,9 @@ function App() {
 
   async function fetchSolution(targetItem, recipeName) {
     try {
-      const res = await api.get('/solve', {
-        params: {
-          target_item: targetItem,
-          final_recipe: recipeName
-        }
+      const res = await api.post('/solve', {
+        target_item: targetItem,
+        final_recipe: recipeName
       });
       return res.data;
     } catch (e) {
@@ -24,7 +22,7 @@ function App() {
   }
 
   function handleClickRecipe(clickedRecipe) {
-    const solution = fetchSolution(clickedRecipe).then((data) => {
+    const solution = fetchSolution(targetItem, clickedRecipe).then((data) => {
       console.log(data);
     });
   }

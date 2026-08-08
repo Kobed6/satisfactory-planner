@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import get_all_items, get_all_recipes, get_search_items, get_search_recipes, to_name
 from typing import List
-from .models import Item, Recipe, SearchRecipe
+from .models import Item, Recipe, SearchRecipe, SolveRequest
 from .solver import calculate
 
 app = FastAPI()
@@ -34,9 +34,9 @@ def search_items(input: str):
 def search_recipes(item: str):
     return get_search_recipes(item)
 
-@app.get('/solve', response_model=dict)
-def solve(target_item: str, final_recipe: str, recipe_list: List[str] | None = None):
-    recipe_vars = calculate(target_item, final_recipe, recipe_list)
+@app.post('/solve', response_model=dict)
+def solve(request: SolveRequest):
+    recipe_vars = calculate(request.target_item, request.final_recipe, request.recipe_list)
     res = {}
     for item_className, var in recipe_vars.items():
         res[to_name(item_className)] = var
