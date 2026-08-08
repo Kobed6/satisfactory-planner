@@ -62,12 +62,16 @@ def get_recipes(item_className: str):
 
 def get_nonalt_recipe(item_className: str):
     """Get original recipe of an item using the item's className"""
+    nonalt = None
     try:
         for recipe in get_recipes(item_className):
-            if not recipe['alternate']:
+            if get_main_product(recipe['className'])['item'] == item_className and not recipe['alternate']:     # prioritize recipes in which the item passed in is not a byproduct
                 return recipe
-        print(f'Warning: get_nonalt_recipe returning None (item: {item_className})')
-        return None
+            elif not recipe['alternate'] and nonalt is None:
+                nonalt = recipe
+        if nonalt is None:
+            print(f'Warning: get_nonalt_recipe returning None (item: {item_className})')
+        return nonalt
     except TypeError as e:
         print(f'{e}\n{item_className} is not a string')
 
@@ -151,11 +155,11 @@ def get_all_recipes():
             print(f'Warning: get_all_recipes returning None')
             return None
 
-def get_search_recipes(input: str):
-    """Returns recipes with names containing the search input"""
+def get_search_items(input: str):
+    """Returns items with names containing the search input"""
     with db.cursor(dictionary=True) as cursor:
         query = """
-            SELECT name FROM Recipes WHERE name LIKE %s
+            SELECT name FROM Items WHERE name LIKE %s
         """
         cursor.execute(query, (f'%{input}%',))
         res = cursor.fetchall()
@@ -163,6 +167,50 @@ def get_search_recipes(input: str):
         for r in res:
             names.append(r['name'])
         return names
+
+def get_search_recipes(item: str):
+    """Returns recipes with products containing the searched item"""
+    with db.cursor(dictionary=True) as cursor:
+        recipeIDs = []
+        f_query = """
+            SELECT recipeID FROM Products WHERE item =
+                (SELECT className FROM Items WHERE name = %s)
+        """
+        cursor.execute(f_query, (item,))
+        f_query_res = cursor.fetchall()
+        for r in f_query_res:
+            recipeIDs.append(r['recipeID'])
+
+        if recipeIDs:
+            specifiers = ','.join(['%s'] * len(recipeIDs))
+            s_query = f"""
+                SELECT name FROM Recipes WHERE id IN ({specifiers})
+            """
+            cursor.execute(s_query, recipeIDs)
+            s_query_res = cursor.fetchall()
+            names = []
+            recipes = []
+            for r in s_query_res:
+                names.append(r['name'])
+
+            for recipe_name in names:
+                ingredients = []
+                for ingredient in get_ingredients(recipe_name):
+                    ingredients.append(f'{ingredient['amount']}x {to_name(ingredient['item'])}')
+
+                products = []
+                for product in get_products(recipe_name):
+                    products.append(f'{product['amount']}x {to_name(product['item'])}')
+
+                recipes.append({
+                    'name': recipe_name,
+                    'ingredients': ', '.join(ingredients),
+                    'products': ', '.join(products)
+                })
+
+            return recipes
+        else:
+            return []
 
 def to_className(item: str):
     """Returns the className of an item using its in-game name"""
@@ -193,10 +241,27 @@ def recipe_name_to_className(recipe: str):
             if res:
                 return res['className']
             else:
-                print(f'Warning: recipe_name_to_className returning None (item: {recipe})')
+                print(f'Warning: recipe_name_to_className returning None (name: {recipe})')
                 return None
     except TypeError as e:
         print(f'{e}\n{recipe} is not a string')
+
+def recipe_className_to_name(className: str):
+    """Returns the name of a recipe using its className"""
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT name FROM Recipes WHERE className=%s
+            """
+            cursor.execute(query, (className,))
+            res = cursor.fetchone()
+            if res:
+                return res['name']
+            else:
+                print(f'Warning: recipe_className_to_name returning None (className: {className})')
+                return None
+    except TypeError as e:
+        print(f'{e}\n{className} is not a string')
 
 def to_name(className: str):
     """Returns the in-game name of an item using its className"""

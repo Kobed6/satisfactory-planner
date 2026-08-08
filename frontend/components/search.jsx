@@ -3,51 +3,54 @@ import api from '../src/api.js';
 import search_icon from '../src/assets/search_icon.png'
 import { useState } from 'react';
 
-export default function Search() {
+export default function Search({setRecipes, setTargetItem, setRenderSearchResults}) {
   const [query, setQuery] = useState('');
-  const [recipes, setRecipes] = useState([]);
-  const [renderResults, setRenderResults] = useState(false);
+  const [items, setItems] = useState([]);
+  const [renderItems, setRenderItems] = useState(false);
 
-  async function fetchRecipes(query) {
+  async function fetchItems(query) {
     try {
-      const res = await api.get('/search', {
+      const res = await api.get('/search-items', {
         params: {
           input: query
         }
       });
+      setItems(res.data);
+    } catch (e) {
+      console.error('Error fetching items', e);
+    }
+  }
+
+  async function fetchRecipes(clickedItem) {
+    try {
+      const res = await api.get('/search-recipes', {
+        params: {
+          item: clickedItem
+        }
+      });
       setRecipes(res.data);
+      return res.data
     } catch (e) {
       console.error('Error fetching recipes', e);
     }
   }
 
-  async function fetchSolution(recipe_name) {
-    try {
-      const res = await api.get('/solve', {
-        params: {
-          final_recipe: recipe_name
-        }
-      });
-      console.log(res.data)
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching solution', e);
-    }
-  }
-
   function handleChange(newQuery) {
     setQuery(newQuery);
-    fetchRecipes(newQuery);
+    fetchItems(newQuery);
   }
 
   function handleBlur() {
     setTimeout(() =>
-      setRenderResults(false)
+      setRenderItems(false)
     , 200);
   }
 
-  function handleClickRecipe(clickedRecipe) {
-    const solution = fetchSolution(clickedRecipe);
+  function handleClickItem(clickedItem) {
+    setTargetItem(clickedItem)
+    const recipeResults = fetchRecipes(clickedItem).then(() => {
+      setRenderSearchResults(true)
+    });
   }
 
   return (
@@ -56,17 +59,17 @@ export default function Search() {
         <input
           type='text'
           value={query}
-          onClick={() => {fetchRecipes(query); setRenderResults(true)}}
+          onClick={() => {fetchItems(query); setRenderItems(true)}}
           onChange={(e) => handleChange(e.target.value)}
           placeholder='Search...'
           onBlur={() => handleBlur()}
         />
         <img src={search_icon} />
       </span>
-      {renderResults &&
+      {renderItems &&
         <ul>
-          {recipes.map((recipe) =>
-            <li key={recipe} onClick={(e) => handleClickRecipe(e.target.textContent)}>{recipe}</li>
+          {items.map((item) =>
+            <li key={item} onClick={(e) => handleClickItem(e.target.textContent)}>{item}</li>
           )}
         </ul>
       }

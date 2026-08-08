@@ -13,3 +13,8 @@ class Recipe(BaseModel):
     duration: int
     producedIn: str
     alternate: bool
+
+class SearchRecipe(BaseModel):
+    name: str
+    ingredients: str
+    products: str
