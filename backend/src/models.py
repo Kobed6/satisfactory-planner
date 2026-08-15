@@ -19,7 +19,12 @@ class SearchRecipe(BaseModel):
     ingredients: str
     products: str
 
+class ResourceInput(BaseModel):
+    resource: str
+    amount: float
+
 class SolveRequest(BaseModel):
     target_item: str
     final_recipe: str
+    inputs: list[ResourceInput]
     recipe_list: list[str] | None = None

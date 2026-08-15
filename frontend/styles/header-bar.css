@@ -7,4 +7,7 @@
   padding: 2rem 6rem 2rem 2rem;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0px 2px 1em rgba(0, 0, 0, 0.7);
+  position: relative;
+  z-index: 2;
 }

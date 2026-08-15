@@ -54,7 +54,7 @@ def get_nonalt_recipes(recipe_name: str) -> list:
         for ingredient in get_ingredients(curr_recipe['name']):
             item_name = to_name(ingredient['item'])
             ingredient_className = ingredient['item']
-            if get_item(item_name)['producedIn'] == '':     # item is not from an extractor
+            if not get_item(item_name)['isRawResource']:     # item is a raw resource
                 nonalt_recipe = get_nonalt_recipe(ingredient_className)
                 recipes_queue.append(nonalt_recipe)
                 recipes.append(nonalt_recipe)
@@ -106,7 +106,7 @@ def calculate_extraneous(final_recipe_name: str, prob: pulp.LpProblem, recipe_va
         extraneous_outputs[item_name] = new_values[to_className(item_name)]
     return extraneous_outputs
 
-def calculate(target_item: str, final_recipe_name: str, recipes: Optional[list] = None):
+def calculate(target_item: str, final_recipe_name: str, inputs: dict, recipes: Optional[list] = None):
     """Calculate a linear problem maximizing runs of recipes
     Args:
         final_recipe_name (str): In-game name of the target item's recipe
@@ -114,6 +114,7 @@ def calculate(target_item: str, final_recipe_name: str, recipes: Optional[list] 
     Returns:
         A dictionary mapping item classNames to the amount produced of that item
     """
+    print(f'\nCALCULATE\ntarget_item: {target_item}\nfinal_recipe_name: {final_recipe_name}\ninputs: {inputs}')
     recipe = get_recipe(final_recipe_name)
     recipe_className = recipe['className']
 
@@ -158,29 +159,30 @@ def calculate(target_item: str, final_recipe_name: str, recipes: Optional[list] 
 
     all_items = set(all_products) | set(all_ingredients)
     non_ingredient_products = []
-    for item in all_items:
-        item_name = to_name(item)
-        record = get_item(item_name)
-        if record['producedIn'] != '':          # item is from an extractor
-            consumed = pulp.lpSum(amount * recipe_var for amount, recipe_var in all_ingredients[item])
-            prob += consumed <= get_extractor_output(record['producedIn'], 2)
-        else:
-            produced = pulp.lpSum(amount * recipe_var for amount, recipe_var in all_products[item])
-            if all_ingredients.get(item) is not None:
+    try:
+        for item in all_items:
+            item_name = to_name(item)
+            record = get_item(item_name)
+            if record['isRawResource']:          # item is a raw resource
                 consumed = pulp.lpSum(amount * recipe_var for amount, recipe_var in all_ingredients[item])
-                prob += consumed <= produced
+                prob += consumed <= inputs[item_name]
             else:
-                if item_name != target_item:
-                    non_ingredient_products.append(item_name)
+                produced = pulp.lpSum(amount * recipe_var for amount, recipe_var in all_products[item])
+                if all_ingredients.get(item) is not None:
+                    consumed = pulp.lpSum(amount * recipe_var for amount, recipe_var in all_ingredients[item])
+                    prob += consumed <= produced
+                else:
+                    if item_name != target_item:
+                        non_ingredient_products.append(item_name)
 
-    solver = pulp.COIN_CMD(msg=False)
-    status = prob.solve(solver)
-    print(f'Status: {pulp.LpStatus[status]}')
-    final_products = convert_output(recipe_vars)
-    # extraneous_outputs = calculate_extraneous(final_recipe_name, prob, recipe_vars, non_ingredient_products)
-    # print(extraneous_outputs)
-    return final_products
+        solver = pulp.COIN_CMD(msg=False)
+        status = prob.solve(solver)
+        print(f'Status: {pulp.LpStatus[status]}')
+        final_products = convert_output(recipe_vars)
+        # extraneous_outputs = calculate_extraneous(final_recipe_name, prob, recipe_vars, non_ingredient_products)
+        # print(extraneous_outputs)
+        return final_products
+    except KeyError as e:
+        print(f'Required input missing {e}')
+        return None
 
-# print(calculate('AI Limiter', 'AI Limiter'))
-# print(calculate('Plastic', 'Plastic'))
-# print(calculate('Reinforced Iron Plate', 'Reinforced Iron Plate'))

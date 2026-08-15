@@ -32,13 +32,13 @@ cursor.execute('CREATE TABLE IF NOT EXISTS Products (id INT PRIMARY KEY AUTO_INC
                item VARCHAR(50), amount INT UNSIGNED, amountPerMin FLOAT(3))')
 cursor.execute('CREATE TABLE IF NOT EXISTS Buildings (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), unlockedBy VARCHAR(50), \
 			   powerUsage INT, somersloopSlots INT)')
-cursor.execute('CREATE TABLE IF NOT EXISTS Items (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), producedIn VARCHAR(50))')
+cursor.execute('CREATE TABLE IF NOT EXISTS Items (id INT PRIMARY KEY AUTO_INCREMENT, className VARCHAR(50), name VARCHAR(50), isRawResource BOOL)')
 
 recipe_insert_query = 'INSERT INTO Recipes (className, name, unlockedBy, duration, producedIn, alternate) VALUES (%s, %s, %s, %s, %s, %s)'
 ingredient_insert_query = 'INSERT INTO Ingredients (recipeID, item, amount, amountPerMin) VALUES (%s, %s, %s, %s)'
 product_insert_query = 'INSERT INTO Products (recipeID, item, amount, amountPerMin) VALUES (%s, %s, %s, %s)'
 building_insert_query = 'INSERT INTO Buildings (className, name, unlockedBy, powerUsage, somersloopSlots) VALUES (%s, %s, %s, %s, %s)'
-item_insert_query = 'INSERT INTO Items (className, name, producedIn) VALUES (%s, %s, %s)'
+item_insert_query = 'INSERT INTO Items (className, name, isRawResource) VALUES (%s, %s, %s)'
 
 recipes_s = pd.read_json('data/Template_DocsRecipes.json', typ='series')
 recipes_s
@@ -96,20 +96,16 @@ for value in buildings_s:
 		)
 		cursor.execute(building_insert_query, building)
 
-raw_ores = {'Desc_OreBauxite_C', 'Desc_OreGold_C', 'Desc_Coal_C', 'Desc_Cement_C', 'Desc_OreCopper_C', 'Desc_OreIron_C', 'Desc_Stone_C', \
-                     'Desc_RawQuartz_C', 'Desc_SAM_C', 'Desc_Sulfur_C', 'Desc_OreUranium_C'}
+raw_resources = {'Desc_OreBauxite_C', 'Desc_OreGold_C', 'Desc_Coal_C', 'Desc_Cement_C', 'Desc_OreCopper_C', 'Desc_OreIron_C', 'Desc_Stone_C', 'Desc_RawQuartz_C', \
+				 	'Desc_SAM_C', 'Desc_Sulfur_C', 'Desc_OreUranium_C', 'Desc_Shroom_C', 'Desc_Nut_C', 'Desc_GenericBiomass_C', 'Desc_Crystal_C', 'Desc_LiquidOil_C', \
+						'Desc_HatcherParts_C', 'Desc_HogParts_C', 'Desc_Leaves_C', 'Desc_NitrogenGas_C', 'Desc_WAT2_C', 'Desc_Mycelia_C', 'Desc_Berry_C', \
+							'Desc_Crystal_mk3_C', 'Desc_WAT1_C', 'Desc_SpitterParts_C', 'Desc_StingerParts_C', 'Desc_Water_C', 'Desc_Wood_C', 'Desc_Crystal_mk2_C'}
 for value in items_s:
-	producedIn = ''
+	is_raw_resource = 0
 	data = value[0]
-	if data['className'] in raw_ores:
-		producedIn = 'Desc_MinerMk1_C'
-	elif data['className'] == 'Desc_LiquidOil_C':
-		producedIn = 'Desc_OilPump_C'
-	elif data['className'] == 'Desc_Water_C':
-		producedIn = 'Desc_WaterPump_C'
-	elif data['className'] == 'Desc_NitrogenGas_C':
-		producedIn = 'Desc_FrackingSmasher_C'
-	item = (data['className'], data['name'], producedIn)
+	if data['className'] in raw_resources:
+		is_raw_resource = 1
+	item = (data['className'], data['name'], is_raw_resource)
 	cursor.execute(item_insert_query, item)
 
 db.commit()

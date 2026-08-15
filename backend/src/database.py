@@ -212,6 +212,19 @@ def get_search_recipes(item: str):
         else:
             return []
 
+def search_raw_resources(input: str):
+    """Returns raw resources with names containing the search input"""
+    with db.cursor(dictionary=True) as cursor:
+        query = """
+            SELECT name FROM Items WHERE isRawResource = 1 AND name LIKE %s
+        """
+        cursor.execute(query, (f'%{input}%',))
+        res = cursor.fetchall()
+        names = []
+        for r in res:
+            names.append(r['name'])
+        return names
+
 def to_className(item: str):
     """Returns the className of an item using its in-game name"""
     try:

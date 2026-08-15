@@ -2,18 +2,23 @@ import '../styles/App.css'
 import api from '../src/api.js';
 import HeaderBar from '../components/header-bar.jsx';
 import SearchResults from '../components/search-results.jsx';
+import Sidebar from '../components/sidebar.jsx';
 import { useState } from 'react';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
   const [targetItem, setTargetItem] = useState('')
   const [renderSearchResults, setRenderSearchResults] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState('')
+  const [inputs, setInputs] = useState([])
+  const [page, setPage] = useState('Settings')
 
-  async function fetchSolution(targetItem, recipeName) {
+  async function fetchSolution() {
     try {
       const res = await api.post('/solve', {
         target_item: targetItem,
-        final_recipe: recipeName
+        final_recipe: selectedRecipe,
+        inputs: inputs
       });
       return res.data;
     } catch (e) {
@@ -21,8 +26,8 @@ function App() {
     }
   }
 
-  function handleClickRecipe(clickedRecipe) {
-    const solution = fetchSolution(targetItem, clickedRecipe).then((data) => {
+  function solve() {
+    const solution = fetchSolution().then((data) => {
       console.log(data);
     });
   }
@@ -30,11 +35,17 @@ function App() {
   return (
     <>
       <HeaderBar setRecipes={setRecipes} setTargetItem={setTargetItem} setRenderSearchResults={setRenderSearchResults} />
-      <main>
-        {renderSearchResults &&
-          <SearchResults recipes={recipes} targetItem={targetItem} handleClickRecipe={handleClickRecipe} />
-        }
-      </main>
+      {page === 'Settings' ?
+        <main className='settings-main'>
+          <Sidebar inputs={inputs} setInputs={setInputs} solve={solve} />
+          {renderSearchResults &&
+            <SearchResults recipes={recipes} targetItem={targetItem} selectedRecipe={selectedRecipe} setSelectedRecipe={setSelectedRecipe} />
+          }
+        </main>
+      :
+        <main className='solution-main'>
+        </main>
+      }
     </>
   )
 }
