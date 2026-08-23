@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import get_all_items, get_all_recipes, get_search_items, get_search_recipes, to_name, search_raw_resources
 from typing import List
 from .models import Item, Recipe, SearchRecipe, SolveRequest
-from .solver import calculate
+from .solver import calculate_recipes, calculate_items, calculate_extraneous
 
 app = FastAPI()
 
@@ -38,15 +38,23 @@ def search_recipes(item: str):
 def search_resources(input: str):
     return search_raw_resources(input)
 
-@app.post('/solve', response_model=dict)
-def solve(request: SolveRequest):
+@app.post('/solve/recipes', response_model=List)
+def solveItems(request: SolveRequest):
     input_dict = {}
     for i in request.inputs:
         input_dict[i.resource] = i.amount
-    recipe_vars = calculate(request.target_item, request.final_recipe, input_dict, request.recipe_list)
-    if recipe_vars is None:
-        return None
-    res = {}
-    for item_className, var in recipe_vars.items():
-        res[to_name(item_className)] = var
-    return res
+    return(calculate_recipes(request.target_item, request.final_recipe, input_dict, request.recipe_list))
+
+@app.post('/solve/items', response_model=dict)
+def solveItems(request: SolveRequest):
+    input_dict = {}
+    for i in request.inputs:
+        input_dict[i.resource] = i.amount
+    return(calculate_items(request.target_item, request.final_recipe, input_dict, request.recipe_list))
+
+@app.post('/solve/extraneous', response_model=dict)
+def solveExtraneous(request: SolveRequest):
+    input_dict = {}
+    for i in request.inputs:
+        input_dict[i.resource] = i.amount
+    return(calculate_extraneous(request.target_item, request.final_recipe, input_dict, request.recipe_list))

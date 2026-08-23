@@ -1,6 +1,7 @@
 import '../styles/sidebar.css';
 import api from '../src/api.js';
 import { useState, useEffect } from 'react';
+import closeIcon from '../src/assets/close.svg';
 
 export default function Sidebar({inputs, setInputs, solve}) {
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -36,7 +37,7 @@ export default function Sidebar({inputs, setInputs, solve}) {
 
   function updateInput(index, value) {
     const newInputs = [...inputs];
-    newInputs[index].resource = value;
+    newInputs[index].resource = value.toLowerCase();
     setInputs(newInputs);
   }
 
@@ -71,7 +72,7 @@ export default function Sidebar({inputs, setInputs, solve}) {
             <input
               type='text'
               value={input.resource}
-              placeholder='Search...'
+              placeholder='Enter resource'
               className='resource-input'
               onClick={() => setActiveIndex(index)}
               onBlur={() => handleBlur()}
@@ -86,7 +87,7 @@ export default function Sidebar({inputs, setInputs, solve}) {
               className='amount-input'
               onChange={(e) => updateAmount(index, e.target.value)}
             />
-            <span className='delete' onClick={() => deleteInput(index)}>X</span>
+            <img className='delete' src={closeIcon} onClick={() => deleteInput(index)} />
           </li>
         )}
       </ul>

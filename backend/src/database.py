@@ -12,7 +12,7 @@ db = mysql.connector.connect(
     database=os.getenv('DB_NAME')
 )
 
-def get_ingredients(item: str):
+def get_ingredients(recipe_name: str):
     """Get ingredients of a recipe using a recipe's in-game name"""
     try:
         query = """
@@ -20,10 +20,10 @@ def get_ingredients(item: str):
                 (SELECT id FROM Recipes WHERE name=%s)
         """
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute(query, (item,))
+            cursor.execute(query, (recipe_name,))
             return cursor.fetchall()
     except TypeError as e:
-        print(f'{e}\n{item} is not a string')
+        print(f'{e}\n{recipe_name} is not a string')
 
 def get_products(recipe_name: str):
     """Get products of a recipe using a recipe's in-game name"""
@@ -126,6 +126,23 @@ def get_main_product(recipe_name: str):
                 return None
     except TypeError as e:
         print(f'{e}\n{recipe_name} is not a string')
+
+def get_building(className: str):
+    """Get the record for a building using its className"""
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT * FROM Buildings WHERE className=%s
+            """
+            cursor.execute(query, (className,))
+            res = cursor.fetchone()
+            if res:
+                return res
+            else:
+                print(f'Warning: get_building returning None (className: {className})')
+                return None
+    except TypeError as e:
+        print(f'{e}\n{className} is not a string')
 
 def get_all_items():
     """Get all items in database"""
@@ -242,6 +259,23 @@ def to_className(item: str):
     except TypeError as e:
         print(f'{e}\n{item} is not a string')
 
+def to_name(className: str):
+    """Returns the in-game name of an item using its className"""
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT name FROM Items WHERE className=%s
+            """
+            cursor.execute(query, (className,))
+            res = cursor.fetchone()
+            if res:
+                return res['name']
+            else:
+                print(f'Warning: to_name returning None (className: {className})')
+                return None
+    except TypeError as e:
+        print(f'{e}\n{className} is not a string')
+
 def recipe_name_to_className(recipe: str):
     """Returns the className of a recipe using its recipe name"""
     try:
@@ -276,19 +310,19 @@ def recipe_className_to_name(className: str):
     except TypeError as e:
         print(f'{e}\n{className} is not a string')
 
-def to_name(className: str):
-    """Returns the in-game name of an item using its className"""
+def building_className_to_name(className: str):
+    """Returns the name of a building using its className"""
     try:
         with db.cursor(dictionary=True) as cursor:
             query = """
-                SELECT name FROM Items WHERE className=%s
+                SELECT name FROM Buildings WHERE className=%s
             """
             cursor.execute(query, (className,))
             res = cursor.fetchone()
             if res:
                 return res['name']
             else:
-                print(f'Warning: to_name returning None (className: {className})')
+                print(f'Warning: building_className_to_name returning None (className: {className})')
                 return None
     except TypeError as e:
         print(f'{e}\n{className} is not a string')

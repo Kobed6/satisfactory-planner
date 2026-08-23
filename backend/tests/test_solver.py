@@ -1,10 +1,10 @@
-from backend.src.solver import calculate
+from backend.src.solver import calculate_items
 import pytest
 from backend.src.database import get_recipe
 
 def test_iron_ingot():
     errors = []
-    recipe_vars = calculate('Iron Ingot', 'Iron Ingot', {'Iron Ore': 120})
+    recipe_vars = calculate_items('Iron Ingot', 'Iron Ingot', {'iron ore': 120})
 
     if recipe_vars['Desc_IronIngot_C'] != 120:
         errors.append(f'Incorrect value for Desc_IronIngot_C: expected 120, received {recipe_vars['Desc_IronIngot_C']}')
@@ -13,7 +13,7 @@ def test_iron_ingot():
 
 def test_plastic():
     errors = []
-    recipe_vars = calculate('Plastic', 'Plastic', {'Crude Oil': 240})
+    recipe_vars = calculate_items('Plastic', 'Plastic', {'crude oil': 240})
 
     if recipe_vars['Desc_Plastic_C'] != 160:
         errors.append(f'Incorrect value for Desc_Plastic_C: expected 160, received {recipe_vars['Desc_Plastic_C']}')
@@ -22,7 +22,7 @@ def test_plastic():
 
 def test_reinforced_plate():
     errors = []
-    recipe_vars = calculate('Reinforced Iron Plate', 'Reinforced Iron Plate', {'Iron Ore': 120})
+    recipe_vars = calculate_items('Reinforced Iron Plate', 'Reinforced Iron Plate', {'iron ore': 120})
 
     if recipe_vars['Desc_IronPlateReinforced_C'] != 10:
         errors.append(f'Incorrect value for Desc_IronPlateReinforced_C: expected 10, received {recipe_vars['Desc_IronPlateReinforced_C']}')
@@ -39,7 +39,7 @@ def test_reinforced_plate():
 
 def test_ai_limiter():
     errors = []
-    recipe_vars = calculate('AI Limiter', 'AI Limiter', {'Copper Ore': 120, 'Caterium Ore': 120})
+    recipe_vars = calculate_items('AI Limiter', 'AI Limiter', {'copper ore': 120, 'caterium ore': 120})
 
     if recipe_vars['Desc_CircuitBoardHighSpeed_C'] != 10:
         errors.append(f'Incorrect value for Desc_CircuitBoardHighSpeed_C: expected 10, received {recipe_vars['Desc_CircuitBoardHighSpeed_C']}')
@@ -56,7 +56,7 @@ def test_ai_limiter():
 
 def test_stator():
     errors = []
-    recipe_vars = calculate('Stator', 'Stator', {'Iron Ore': 120, 'Copper Ore': 120, 'Coal': 120})
+    recipe_vars = calculate_items('Stator', 'Stator', {'iron ore': 120, 'copper ore': 120, 'coal': 120})
 
     if recipe_vars['Desc_Stator_C'] != pytest.approx(26.6667, abs=1e-3):
         errors.append(f'Incorrect value for Desc_Stator_C: expected 26.6667, received {recipe_vars['Desc_Stator_C']}')
@@ -77,7 +77,7 @@ def test_stator():
 
 def test_computer():
     errors = []
-    recipe_vars = calculate('Computer', 'Computer', {'Copper Ore': 120, 'Crude Oil': 240})
+    recipe_vars = calculate_items('Computer', 'Computer', {'copper ore': 120, 'crude oil': 240})
 
     if recipe_vars['Desc_Computer_C'] != 5:
         errors.append(f'Incorrect value for Desc_Computer_C: expected 5, received {recipe_vars['Desc_Computer_C']}')
@@ -99,7 +99,7 @@ def test_computer():
 def test_iron_ingot_list():
     errors = []
     recipes = [get_recipe('Iron Ingot')]
-    recipe_vars = calculate('Iron Ingot', 'Iron Ingot', {'Iron Ore': 120}, recipes)
+    recipe_vars = calculate_items('Iron Ingot', 'Iron Ingot', {'iron ore': 120}, recipes)
 
     if recipe_vars['Desc_IronIngot_C'] != 120:
         errors.append(f'Incorrect value for Desc_IronIngot_C: expected 120, received {recipe_vars['Desc_IronIngot_C']}')
@@ -115,7 +115,7 @@ def test_reinforced_plate_list():
         get_recipe('Iron Ingot'),
         get_recipe('Iron Rod')
     ]
-    recipe_vars = calculate('Reinforced Iron Plate', 'Reinforced Iron Plate', {'Iron Ore': 120}, recipes)
+    recipe_vars = calculate_items('Reinforced Iron Plate', 'Reinforced Iron Plate', {'iron ore': 120}, recipes)
 
     if recipe_vars['Desc_IronPlateReinforced_C'] != 10:
         errors.append(f'Incorrect value for Desc_IronPlateReinforced_C: expected 10, received {recipe_vars['Desc_IronPlateReinforced_C']}')
@@ -133,7 +133,7 @@ def test_reinforced_plate_list():
 def test_alternate_iron_ingot():
     errors = []
     recipes = [get_recipe('Basic Iron Ingot')]
-    recipe_vars = calculate('Iron Ingot', 'Basic Iron Ingot', {'Iron Ore': 120, 'Limestone': 120}, recipes)
+    recipe_vars = calculate_items('Iron Ingot', 'Basic Iron Ingot', {'iron ore': 120, 'limestone': 120}, recipes)
 
     if recipe_vars['Desc_IronIngot_C'] != 150:
         errors.append(f'Incorrect value for Desc_IronIngot_C: expected 150, received {recipe_vars['Desc_IronIngot_C']}')
@@ -142,7 +142,7 @@ def test_alternate_iron_ingot():
 
 def test_automated_miner():
     errors = []
-    recipe_vars = calculate('Portable Miner', 'Automated Miner', {'Iron Ore': 120, 'Coal': 120})
+    recipe_vars = calculate_items('Portable Miner', 'Automated Miner', {'iron ore': 120, 'coal': 120})
 
     if recipe_vars['BP_ItemDescriptorPortableMiner_C'] != 10:
         errors.append(f'Incorrect value for BP_ItemDescriptorPortableMiner_C: expected 10, received {recipe_vars['BP_ItemDescriptorPortableMiner_C']}')

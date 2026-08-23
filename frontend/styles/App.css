@@ -5,3 +5,10 @@
 .solution-main {
   display: flex;
 }
+
+.not-found {
+  color: white;
+  padding: 1.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+}
